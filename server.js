@@ -18,7 +18,9 @@ const ytDlpPath = path.join(__dirname, "yt-dlp");
 const cookiesData = process.env.COOKIES_DATA;
 const cookiesPath = path.join(__dirname, "cookies.txt");
 if (cookiesData) {
-  fs.writeFileSync(cookiesPath, cookiesData.replace(/\\n/g, "\n"));
+  // Replace escaped newlines and tabs with actual characters
+  const formattedCookies = cookiesData.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+  fs.writeFileSync(cookiesPath, formattedCookies);
 }
 
 app.get("/download", (req, res) => {
