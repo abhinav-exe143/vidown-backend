@@ -4,6 +4,7 @@
   "description": "Video downloader backend using yt-dlp",
   "main": "server.js",
   "scripts": {
+    "build": "npm install && npm start",
     "start": "node server.js"
   },
   "keywords": ["video", "downloader", "yt-dlp"],
@@ -16,4 +17,3 @@
     "yt-dlp-wrap": "^2.2.4"
   }
 }
-
