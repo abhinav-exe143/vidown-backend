@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const YTDlpWrap = require("yt-dlp-wrap").default;
@@ -13,7 +12,9 @@ if (!fs.existsSync(downloadsDir)) {
   fs.mkdirSync(downloadsDir, { recursive: true });
 }
 
-const ytDlpWrap = new YTDlpWrap();
+// Use the downloaded yt-dlp binary
+const ytDlpPath = path.join(__dirname, "yt-dlp");
+const ytDlpWrap = new YTDlpWrap(ytDlpPath);
 
 app.get("/download", (req, res) => {
   console.log("🔥 Request received at /download");
@@ -74,6 +75,7 @@ app.get("/info", (req, res) => {
       console.log("❌ Error fetching info:", error);
       res.status(500).json({ error: "Failed to fetch video info", details: error });
     });
+});
 });
 
 
