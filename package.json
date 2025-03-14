@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ./yt-dlp && chmod +x ./yt-dlp"
   },
   "dependencies": {
     "express": "^4.17.1",
@@ -11,4 +12,3 @@
     "yt-dlp-wrap": "^0.0.1"
   }
 }
-
