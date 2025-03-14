@@ -5,11 +5,11 @@ const path = require("path");
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // ✅ JSON parsing enable
 
-// 🔥 Correct `yt-dlp` path set karna
-// const YT_DLP_PATH = path.join(__dirname, "node_modules", "yt-dlp-exec", "bin", "yt-dlp.exe");
-const YT_DLP_PATH = "yt-dlp";
+const YT_DLP_PATH = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
 
+// 🔥 Download Route (Vercel ke liye `/tmp/` use karna zaroori hai)
 app.get("/download", (req, res) => {
     console.log("🔥 Request received at /download");
 
@@ -20,7 +20,9 @@ app.get("/download", (req, res) => {
 
     console.log("🎥 Downloading video from:", videoUrl);
 
-    const command = `"${YT_DLP_PATH}" -f b --merge-output-format mp4 -o "downloads/%(title)s.%(ext)s" "${videoUrl}"`;
+    const outputPath = `/tmp/%(title)s.%(ext)s`;  // ✅ VerceI compatible path
+    const command = `"${YT_DLP_PATH}" -f b --merge-output-format mp4 -o "${outputPath}" "${videoUrl}"`;
+
     exec(command, (error, stdout, stderr) => {
         if (error) {
             console.log("❌ Download error:", stderr);
@@ -31,19 +33,14 @@ app.get("/download", (req, res) => {
     });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
-
-
-//information
-
+// 🔍 Video Info Route
 app.get("/info", (req, res) => {
     let videoUrl = req.query.url;
     if (!videoUrl) {
         return res.status(400).json({ error: "URL required" });
     }
 
-    const command = `"${YT_DLP_PATH}" -J "${videoUrl}"`; // -J flag se JSON output milega
+    const command = `"${YT_DLP_PATH}" -J "${videoUrl}"`; // ✅ JSON output
     exec(command, (error, stdout, stderr) => {
         if (error) {
             console.log("❌ Error fetching info:", stderr);
@@ -74,3 +71,7 @@ app.get("/info", (req, res) => {
         }
     });
 });
+
+// ✅ Dynamic Port for Vercel
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
