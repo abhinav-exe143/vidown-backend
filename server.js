@@ -34,7 +34,7 @@ app.get("/download", (req, res) => {
   console.log("🎥 Downloading video from:", videoUrl);
 
   // Use yt-dlp to get the video stream
-  const ytDlpProcess = exec(${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o -, (error, stdout, stderr) => {
+  const ytDlpProcess = exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o -`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Download error:", error);
       console.log("stderr:", stderr);
@@ -51,7 +51,7 @@ app.get("/download", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(🚀 Server running on http://localhost:${PORT}));
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 
 app.get("/info", (req, res) => {
   const videoUrl = req.query.url;
@@ -59,7 +59,7 @@ app.get("/info", (req, res) => {
     return res.status(400).json({ error: "URL required" });
   }
 
-  exec(${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -J, (error, stdout, stderr) => {
+  exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -J`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Error fetching info:", error);
       return res.status(500).json({ error: "Failed to fetch video info", details: error.message });
@@ -69,10 +69,10 @@ app.get("/info", (req, res) => {
       const videoData = JSON.parse(stdout);
       const availableFormats = videoData.formats.map(format => ({
         id: format.format_id,
-        label: ${format.ext} - ${format.format_note},
+        label: `${format.ext} - ${format.format_note}`,
         quality: format.format_note,
         format: format.ext,
-        size: format.filesize ? ${(format.filesize / 1024 / 1024).toFixed(2)} MB : "Unknown"
+        size: format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : "Unknown"
       }));
 
       res.json({
