@@ -31,7 +31,6 @@ app.get("/download", (req, res) => {
 
   console.log("🎥 Downloading video from:", videoUrl);
 
-  // Use the --cookies option with yt-dlp
   exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o downloads/%(title)s.%(ext)s`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Download error:", error);
@@ -51,7 +50,6 @@ app.get("/info", (req, res) => {
     return res.status(400).json({ error: "URL required" });
   }
 
-  // Use the --cookies option with yt-dlp
   exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -J`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Error fetching info:", error);
