@@ -14,6 +14,13 @@ if (!fs.existsSync(downloadsDir)) {
 
 const ytDlpPath = path.join(__dirname, "yt-dlp");
 
+// Write cookies from environment variable to a file
+const cookiesData = process.env.COOKIES_DATA;
+const cookiesPath = path.join(__dirname, "cookies.txt");
+if (cookiesData) {
+  fs.writeFileSync(cookiesPath, cookiesData.replace(/\\n/g, "\n"));
+}
+
 app.get("/download", (req, res) => {
   console.log("🔥 Request received at /download");
 
@@ -24,7 +31,8 @@ app.get("/download", (req, res) => {
 
   console.log("🎥 Downloading video from:", videoUrl);
 
-  exec(`${ytDlpPath} ${videoUrl} -f b --merge-output-format mp4 -o downloads/%(title)s.%(ext)s`, (error, stdout, stderr) => {
+  // Use the --cookies option with yt-dlp
+  exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o downloads/%(title)s.%(ext)s`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Download error:", error);
       return res.status(500).json({ error: "Download failed", details: error.message });
@@ -43,7 +51,8 @@ app.get("/info", (req, res) => {
     return res.status(400).json({ error: "URL required" });
   }
 
-  exec(`${ytDlpPath} ${videoUrl} -J`, (error, stdout, stderr) => {
+  // Use the --cookies option with yt-dlp
+  exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -J`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Error fetching info:", error);
       return res.status(500).json({ error: "Failed to fetch video info", details: error.message });
