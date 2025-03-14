@@ -1,19 +1,14 @@
+
 {
-  "name": "backend",
+  "name": "vidown-backend",
   "version": "1.0.0",
-  "description": "Video downloader backend using yt-dlp",
   "main": "server.js",
-  "scripts": {
-    "build": "npm install && npm start",
-    "start": "node server.js"
-  },
-  "keywords": ["video", "downloader", "yt-dlp"],
-  "author": "Abhinav",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
+    "express": "^4.17.1",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "yt-dlp-wrap": "^2.2.4"
+    "yt-dlp": "^0.3.1"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }
