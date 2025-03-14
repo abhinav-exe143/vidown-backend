@@ -33,14 +33,21 @@ app.get("/download", (req, res) => {
 
   console.log("🎥 Downloading video from:", videoUrl);
 
-  exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o downloads/%(title)s.%(ext)s`, (error, stdout, stderr) => {
+  // Use yt-dlp to get the video stream
+  const ytDlpProcess = exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o -`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Download error:", error);
+      console.log("stderr:", stderr);
       return res.status(500).json({ error: "Download failed", details: error.message });
     }
-    console.log("✅ Download success!", stdout);
-    res.json({ message: "Download started!", videoUrl });
   });
+
+  // Set headers to force download
+  res.setHeader("Content-Disposition", 'attachment; filename="video.mp4"');
+  res.setHeader("Content-Type", "video/mp4");
+
+  // Stream the video to the client
+  ytDlpProcess.stdout.pipe(res);
 });
 
 const PORT = process.env.PORT || 3000;
