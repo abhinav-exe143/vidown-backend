@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const YTDlpWrap = require("yt-dlp-wrap").default;
 
 const app = express();
 app.use(cors({ origin: "https://vidown-backend.onrender.com/" }));
@@ -12,9 +12,7 @@ if (!fs.existsSync(downloadsDir)) {
   fs.mkdirSync(downloadsDir, { recursive: true });
 }
 
-// Use the downloaded yt-dlp binary
 const ytDlpPath = path.join(__dirname, "yt-dlp");
-const ytDlpWrap = new YTDlpWrap(ytDlpPath);
 
 app.get("/download", (req, res) => {
   console.log("🔥 Request received at /download");
@@ -26,15 +24,14 @@ app.get("/download", (req, res) => {
 
   console.log("🎥 Downloading video from:", videoUrl);
 
-  ytDlpWrap.exec([videoUrl, "-f", "b", "--merge-output-format", "mp4", "-o", `downloads/%(title)s.%(ext)s`])
-    .then(output => {
-      console.log("✅ Download success!", output);
-      res.json({ message: "Download started!", videoUrl });
-    })
-    .catch(error => {
+  exec(`${ytDlpPath} ${videoUrl} -f b --merge-output-format mp4 -o downloads/%(title)s.%(ext)s`, (error, stdout, stderr) => {
+    if (error) {
       console.log("❌ Download error:", error);
-      res.status(500).json({ error: "Download failed", details: error });
-    });
+      return res.status(500).json({ error: "Download failed", details: error.message });
+    }
+    console.log("✅ Download success!", stdout);
+    res.json({ message: "Download started!", videoUrl });
+  });
 });
 
 const PORT = process.env.PORT || 3000;
@@ -46,36 +43,33 @@ app.get("/info", (req, res) => {
     return res.status(400).json({ error: "URL required" });
   }
 
-  ytDlpWrap.exec([videoUrl, "-J"])
-    .then(output => {
-      try {
-        const videoData = JSON.parse(output);
-        const availableFormats = videoData.formats.map(format => ({
-          id: format.format_id,
-          label: `${format.ext} - ${format.format_note}`,
-          quality: format.format_note,
-          format: format.ext,
-          size: format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : "Unknown"
-        }));
-
-        res.json({
-          id: videoData.id,
-          title: videoData.title,
-          thumbnail: videoData.thumbnail,
-          duration: videoData.duration,
-          availableFormats,
-          source: videoData.extractor
-        });
-      } catch (parseError) {
-        console.error("❌ Error parsing info:", parseError);
-        res.status(500).json({ error: "Failed to parse video info" });
-      }
-    })
-    .catch(error => {
+  exec(`${ytDlpPath} ${videoUrl} -J`, (error, stdout, stderr) => {
+    if (error) {
       console.log("❌ Error fetching info:", error);
-      res.status(500).json({ error: "Failed to fetch video info", details: error });
-    });
-});
-});
+      return res.status(500).json({ error: "Failed to fetch video info", details: error.message });
+    }
 
+    try {
+      const videoData = JSON.parse(stdout);
+      const availableFormats = videoData.formats.map(format => ({
+        id: format.format_id,
+        label: `${format.ext} - ${format.format_note}`,
+        quality: format.format_note,
+        format: format.ext,
+        size: format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : "Unknown"
+      }));
 
+      res.json({
+        id: videoData.id,
+        title: videoData.title,
+        thumbnail: videoData.thumbnail,
+        duration: videoData.duration,
+        availableFormats,
+        source: videoData.extractor
+      });
+    } catch (parseError) {
+      console.error("❌ Error parsing info:", parseError);
+      res.status(500).json({ error: "Failed to parse video info" });
+    }
+  });
+});
