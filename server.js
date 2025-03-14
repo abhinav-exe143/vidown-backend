@@ -34,7 +34,7 @@ app.get("/download", (req, res) => {
   console.log("🎥 Downloading video from:", videoUrl);
 
   // Use yt-dlp to get the video stream
-  const ytDlpProcess = exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f b --merge-output-format mp4 -o -`, (error, stdout, stderr) => {
+  const ytDlpProcess = exec(`${ytDlpPath} --cookies ${cookiesPath} ${videoUrl} -f mp4 -o -`, (error, stdout, stderr) => {
     if (error) {
       console.log("❌ Download error:", error);
       console.log("stderr:", stderr);
@@ -48,6 +48,15 @@ app.get("/download", (req, res) => {
 
   // Stream the video to the client
   ytDlpProcess.stdout.pipe(res);
+
+  // Log the video data
+  ytDlpProcess.stdout.on("data", (chunk) => {
+    console.log("Streaming video data...");
+  });
+
+  ytDlpProcess.stdout.on("end", () => {
+    console.log("Video streaming completed.");
+  });
 });
 
 const PORT = process.env.PORT || 3000;
