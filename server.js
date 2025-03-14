@@ -6,7 +6,7 @@ const fs = require("fs");
 const YTDlpWrap = require("yt-dlp-wrap").default;
 
 const app = express();
-app.use(cors({ origin: "https://nexus-downloads.onrender.com/" }));
+app.use(cors({ origin: "https://vidown-backend.onrender.com/" }));
 
 const downloadsDir = path.join(__dirname, "downloads");
 if (!fs.existsSync(downloadsDir)) {
